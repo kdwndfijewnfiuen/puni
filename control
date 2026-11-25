@@ -1,0 +1,9 @@
+Package: jp.local.ywpoverlay
+Name: YWPOverlay
+Version: 0.1.0
+Architecture: iphoneos-arm64
+Description: Yo-kai Watch Puni Puni overlay - deck, hitodama, Y-money, Y-point
+Maintainer: local
+Author: local
+Section: Tweaks
+Depends: mobilesubstrate (>= 0.9.5000)
