@@ -1,0 +1,61 @@
+name: Build YWPOverlay
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    # 自前ランナー（Theos 入り）を使う場合
+    runs-on: self-hosted
+    # GitHub 標準ランナーを使う場合は下に切り替え:
+    # runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Theos
+        run: |
+          if [ -z "$THEOS" ]; then
+            if [ -d "$HOME/theos" ]; then
+              echo "THEOS=$HOME/theos" >> "$GITHUB_ENV"
+              echo "PATH=$HOME/theos/bin:$PATH" >> "$GITHUB_ENV"
+            elif [ -d "/opt/theos" ]; then
+              echo "THEOS=/opt/theos" >> "$GITHUB_ENV"
+              echo "PATH=/opt/theos/bin:$PATH" >> "$GITHUB_ENV"
+            else
+              echo "THEOS not found. Install Theos on the runner."
+              exit 1
+            fi
+          else
+            echo "THEOS=$THEOS"
+            echo "PATH=$THEOS/bin:$PATH" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build package
+        run: |
+          make clean || true
+          make package FINALPACKAGE=1
+
+      - name: List packages
+        run: |
+          ls -la packages/ || ls -la .
+
+      - name: Upload deb
+        uses: actions/upload-artifact@v4
+        with:
+          name: YWPOverlay-deb
+          path: |
+            packages/*.deb
+          if-no-files-found: warn
+
+      - name: Upload dylib (fallback)
+        uses: actions/upload-artifact@v4
+        with:
+          name: YWPOverlay-dylib
+          path: |
+            .theos/obj/**/*.dylib
+            **/*.dylib
+          if-no-files-found: warn
